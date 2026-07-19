@@ -73,7 +73,15 @@ export async function POST(req: Request) {
 }
 ```
 
-For Python, use `pip install pushary-openai-agents`.
+## Python
+
+A Python port of the blocking tool ships in [`python/`](python) and on PyPI:
+
+```bash
+pip install pushary-openai-agents
+```
+
+See [python/README.md](python/README.md) for the Python API.
 
 ## API
 
