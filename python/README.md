@@ -4,7 +4,7 @@ Human-in-the-loop for the [OpenAI Agents SDK](https://openai.github.io/openai-ag
 (Python). A function tool that asks a real human to approve, delivered to their phone,
 and blocks on a fail-closed answer.
 
-Requires the Pushary [Partner plan](https://pushary.com/agent-notifications-integration).
+Requires the Pushary [Partner plan](https://pushary.com/agent-notifications-integration?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=python-readme).
 
 ## Install
 

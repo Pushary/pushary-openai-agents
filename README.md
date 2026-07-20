@@ -4,13 +4,13 @@
 [![npm](https://img.shields.io/npm/v/@pushary/openai-agents)](https://www.npmjs.com/package/@pushary/openai-agents)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Full walkthrough: [Human-in-the-loop for the OpenAI Agents SDK](https://pushary.com/human-in-the-loop-openai-agents-sdk). Reaching your own end-users on their phones is the Pushary [Partner plan](https://pushary.com/human-in-the-loop).
+Full walkthrough: [Human-in-the-loop for the OpenAI Agents SDK](https://pushary.com/human-in-the-loop-openai-agents-sdk?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=readme). Reaching your own end-users on their phones is the Pushary [Partner plan](https://pushary.com/human-in-the-loop?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=readme).
 
 Human-in-the-loop for the [OpenAI Agents SDK](https://openai.github.io/openai-agents-js/)
 (TypeScript). A function tool that asks a real human to approve, delivered to their
 phone, and blocks on a fail-closed answer.
 
-Requires the Pushary [Partner plan](https://pushary.com/agent-notifications-integration).
+Requires the Pushary [Partner plan](https://pushary.com/agent-notifications-integration?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=readme).
 
 ## Install
 
@@ -90,6 +90,10 @@ See [python/README.md](python/README.md) for the Python API.
 - `createDurableDecision(config, input)` — open a decision with a callbackUrl for the durable path.
 - `resolvePusharyCallback(raw, signature, secret)` — verify + parse a callback into `{ correlationId, answer, approved, ... }`.
 - `askExternalUser`, `describeAnswer`, `isAffirmative`, `deterministicKey`, `SIGNATURE_HEADER`.
+
+## Example
+
+A runnable example is in [`examples/`](examples).
 
 ## License
 
