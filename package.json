@@ -6,7 +6,10 @@
   "homepage": "https://pushary.com/human-in-the-loop-openai-agents-sdk",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Pushary/pushary-openai-agents.git"
+    "url": "git+https://github.com/Pushary/pushary-openai-agents.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Pushary/pushary-openai-agents/issues"
   },
   "license": "MIT",
   "type": "module",
@@ -50,7 +53,7 @@
     "tsup": "^8.0.0",
     "typescript": "^5.0.0",
     "vitest": "^2.1.0",
-    "zod": "^4.0.0"
+    "zod": "^3.25.0"
   },
   "publishConfig": {
     "access": "public"
@@ -66,8 +69,5 @@
     "needs-approval",
     "tool",
     "llm"
-  ],
-  "bugs": {
-    "url": "https://github.com/Pushary/pushary-openai-agents/issues"
-  }
+  ]
 }
