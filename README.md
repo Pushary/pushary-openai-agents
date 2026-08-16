@@ -47,6 +47,58 @@ the call blocks until they answer. The tool returns a fail-closed instruction ("
 human declined. Do not proceed."). `externalId` is bound in code, never taken from
 model input, so a prompt-injected model cannot ask the wrong person.
 
+## Gating a tool the model cannot skip
+
+`pusharyTool` is a tool the model chooses to call. That is right for "go ask someone
+about this", and wrong for "this must not happen without a yes", because a model that
+does not want to be interrupted can decline to call it.
+
+The SDK's own gate splits in two: `needsApproval` decides *whether* a human is needed,
+and the run then stops with `result.interruptions`. Nothing asks anyone. Resolving
+those interruptions is the caller's job, and `resolvePusharyInterruptions` is that job
+done:
+
+```ts
+import { Agent, run, tool } from '@openai/agents'
+import { z } from 'zod'
+import { pusharyNeedsApproval, resolvePusharyInterruptions } from '@pushary/openai-agents'
+
+const issueRefund = tool({
+  name: 'issue_refund',
+  description: 'Refund an order',
+  parameters: z.object({ amount: z.number() }),
+  needsApproval: pusharyNeedsApproval(),
+  execute: async ({ amount }) => chargeBack(amount),
+})
+
+let result = await run(agent, 'Refund order 1234')
+while (result.interruptions?.length) {
+  const outcome = await resolvePusharyInterruptions(
+    { externalId: user.id },
+    { interruptions: result.interruptions, state: result.state },
+  )
+  if (!outcome.allApproved) break
+  result = await run(agent, result.state)
+}
+```
+
+Each interruption becomes one decision on the phone, resolved in order so the person
+sees one question at a time. A denial is handed back to the model as the rejection
+message, so it knows why it was stopped rather than retrying blindly.
+
+Fail-closed: a denial, an expiry, or nobody answering all reject. For a multi-tenant
+product, resolve the end-user per interruption:
+
+```ts
+resolvePusharyInterruptions(
+  { externalId: (item) => ownerOf(item.rawItem.callId) },
+  { interruptions: result.interruptions, state: result.state },
+)
+```
+
+Pass `runId` when you replay a run under ids you mint yourself, so a replay resolves
+to the same decisions instead of paging twice.
+
 ## Durable approvals
 
 For a wait longer than a request can hold, don't block. Two options:
@@ -87,8 +139,11 @@ See [python/README.md](python/README.md) for the Python API.
 
 - `connect(config, externalId)` — enroll an end-user's phone.
 - `pusharyTool(config, { externalId })` — an OpenAI Agents function tool that blocks on a human.
+- `pusharyNeedsApproval()` — a `needsApproval` predicate that routes every call to a human.
+- `resolvePusharyInterruptions(config, { interruptions, state })` — ask about each interruption, then approve or reject it on the run state.
 - `createDurableDecision(config, input)` — open a decision with a callbackUrl for the durable path.
 - `resolvePusharyCallback(raw, signature, secret)` — verify + parse a callback into `{ correlationId, answer, approved, ... }`.
+- `createPusharyGate(config)` — the raw fail-closed gate, for anything the helpers above do not cover.
 - `askExternalUser`, `describeAnswer`, `isAffirmative`, `deterministicKey`, `SIGNATURE_HEADER`.
 
 ## Example

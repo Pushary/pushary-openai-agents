@@ -41,6 +41,55 @@ the call blocks until they answer. The tool returns a fail-closed instruction. T
 `external_id` is bound when you build the tool, never taken from the model, so a
 prompt-injected agent cannot ask the wrong person.
 
+## Gating a tool the model cannot skip
+
+`pushary_tool` is a tool the model chooses to call. That is right for "go ask someone
+about this", and wrong for "this must not happen without a yes", because a model that
+does not want to be interrupted can decline to call it.
+
+The SDK's own gate splits in two: `needs_approval` decides *whether* a human is
+needed, and the run then stops with `result.interruptions`. Nothing asks anyone.
+Resolving those interruptions is the caller's job, and `resolve_pushary_interruptions`
+is that job done:
+
+```python
+from agents import Agent, Runner, function_tool
+from pushary_openai_agents import pushary_needs_approval, resolve_pushary_interruptions
+
+@function_tool(needs_approval=pushary_needs_approval())
+def issue_refund(amount: float) -> str:
+    return charge_back(amount)
+
+agent = Agent(name="Support", instructions="Refund when asked.", tools=[issue_refund])
+
+result = await Runner.run(agent, "Refund order 1234")
+while result.interruptions:
+    outcome = resolve_pushary_interruptions(result, external_id="user_123")
+    if not outcome.all_approved:
+        break
+    result = await Runner.run(agent, outcome.state)
+```
+
+Resume with `outcome.state`, not `result.to_input_list()`. The second replays the
+conversation without the decisions on it, so the model asks for the same tool again
+and the person gets paged twice.
+
+Each interruption becomes one decision on the phone, resolved in order so the person
+sees one question at a time. A denial is handed back to the model as the rejection
+message, so it knows why it was stopped rather than retrying blindly.
+
+Fail-closed: a denial, an expiry, or nobody answering all reject. For a multi-tenant
+product, resolve the end-user per interruption:
+
+```python
+resolve_pushary_interruptions(
+    result, external_id=lambda item: owner_of(item.raw_item.call_id)
+)
+```
+
+Pass `run_id=` when you replay a run under ids you mint yourself, so the replay
+resolves to the same decisions instead of paging twice.
+
 ## Durable approvals
 
 For a wait longer than a request can hold, drive your own flow off `ask_human` with a
@@ -64,8 +113,11 @@ For TypeScript, use `npm i @pushary/openai-agents`.
 - `connect(external_id, *, api_key=None, base_url=None)` — enroll an end-user's phone.
 - `pushary_tool(external_id, *, name="ask_human", ...)` — an OpenAI Agents function tool bound to that user.
 - `ask_human(question, *, external_id, type="confirm", ...)` — blocking, returns the decision dict.
+- `pushary_needs_approval()` — a `needs_approval` predicate that routes every call to a human.
+- `resolve_pushary_interruptions(result, *, external_id, run_id="", ...)` — ask about each interruption, then approve or reject it on the run's context.
 - `resolve_pushary_callback(raw_body, signature, secret)` — verify + parse a callback for the durable path.
-- `describe_answer(type, result)`, `is_affirmative(answer)`, `deterministic_key(parts)`, `SIGNATURE_HEADER`.
+- `create_pushary_gate(...)` — the raw fail-closed gate, for anything the helpers above do not cover.
+- `describe_answer(type, result)`, `is_affirmative(answer)`, `render_approval_question(tool, input)`, `deterministic_key(parts)`, `SIGNATURE_HEADER`.
 
 ## License
 

@@ -3,6 +3,7 @@ import { z } from 'zod'
 import { askExternalUser, describeAnswer, type PusharyOpenAIAgentsConfig } from './core'
 
 export * from './core'
+export * from './approval'
 
 const DEFAULT_DESCRIPTION =
   'Ask a real human to approve, choose, or answer. Delivered to their phone and answered from the lock screen. Blocks until they reply. Use before any risky or irreversible action or when you need a human decision.'

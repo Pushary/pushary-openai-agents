@@ -6,9 +6,11 @@ without it installed.
 import hashlib
 import hmac
 import json
+import os
 import unittest
 
 import pushary_openai_agents as poa
+from pushary import adapters
 
 
 class FakeDecisions:
@@ -36,14 +38,21 @@ class WithFakeClient:
     def __init__(self, client):
         self.client = client
         self._orig = None
+        self._orig_key = None
 
     def __enter__(self):
-        self._orig = poa._client
-        poa._client = lambda *a, **k: self.client
+        self._orig = adapters.PusharyServer
+        adapters.PusharyServer = lambda **kwargs: self.client
+        self._orig_key = os.environ.get("PUSHARY_API_KEY")
+        os.environ["PUSHARY_API_KEY"] = "pk_test.sk_test"
         return self.client
 
     def __exit__(self, *exc):
-        poa._client = self._orig
+        adapters.PusharyServer = self._orig
+        if self._orig_key is None:
+            os.environ.pop("PUSHARY_API_KEY", None)
+        else:
+            os.environ["PUSHARY_API_KEY"] = self._orig_key
 
 
 SECRET = "whsec_test"

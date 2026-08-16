@@ -6,5 +6,5 @@ export default defineConfig({
   dts: true,
   clean: true,
   sourcemap: true,
-  external: ['@openai/agents', /^@openai\//, 'zod', '@pushary/server'],
+  external: ['@openai/agents', /^@openai\//, 'zod', '@pushary/server', /^@pushary\/server\//],
 })
