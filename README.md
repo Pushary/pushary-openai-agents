@@ -153,3 +153,7 @@ A runnable example is in [`examples/`](examples).
 ## License
 
 MIT
+
+## Operation identity
+
+Independent blocking asks create separate decisions. For a retry of one operation, pass `idempotencyKey` to `askExternalUser`. `createDurableDecision` requires that key before it can send: derive it from your unique run ID, step and user, never question text alone.

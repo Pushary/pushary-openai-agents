@@ -52,7 +52,7 @@ export const createPusharyGate = kernel.createGate
 /** The end-user to ask, or a clear error naming these helpers. */
 export const requirePusharyExternalId = kernel.requireExternalId
 
-/** Blocking ask (Pattern A): create then poll durably. Idempotency keyed by externalId + node + question. */
+/** Blocking ask (Pattern A): create then poll durably. A fresh key is used unless the caller supplies an operation-specific idempotencyKey. */
 export const askExternalUser = kernel.askExternalUser
 
 /** Durable create (Pattern B): open a decision with a callbackUrl and return at once. */
