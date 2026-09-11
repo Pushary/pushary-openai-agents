@@ -1,6 +1,6 @@
 # pushary-openai-agents
 
-Release candidate `0.4.0` requires `pushary>=2.1.0,<3` and `openai-agents>=0.18`. Clean-wheel checks used Python 3.12.12 with `openai-agents==0.18.0`; broader declared ranges do not imply every version was tested.
+Version `0.4.0` requires `pushary>=2.1.0,<3` and `openai-agents>=0.18`. Clean-wheel checks used Python 3.12.12 with `openai-agents==0.18.0`; broader declared ranges do not imply every version was tested.
 
 Customer reviews use the native Pushary app first. Confirmations may use notification actions; choices and typed answers open the app. Keep the ask tool for information and the SDK's enforced approval interruptions for permission to execute. Web remains a compatibility option.
 
@@ -13,7 +13,7 @@ Human-in-the-loop for the [OpenAI Agents SDK](https://openai.github.io/openai-ag
 (Python). A function tool that asks a real human to approve, delivered to their phone,
 and blocks on a fail-closed answer.
 
-Requires the Pushary [Partner plan](https://pushary.com/agent-notifications-integration?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=python-readme).
+Requires the Pushary [Partner plan](https://pushary.com/sign-up?from=agent&plan=partner&utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=python-partner-start).
 
 ## Install
 
@@ -21,7 +21,7 @@ Requires the Pushary [Partner plan](https://pushary.com/agent-notifications-inte
 pip install pushary-openai-agents
 ```
 
-Set `PUSHARY_API_KEY` (get it in your [dashboard](https://pushary.com/dashboard/settings)).
+Set `PUSHARY_API_KEY` (get it in your [dashboard](https://pushary.com/onboarding/partner)).
 
 ## Connect a phone once
 
@@ -39,10 +39,10 @@ from pushary_openai_agents import pushary_tool
 
 agent = Agent(
     name="Support",
-    instructions="Call ask_human before issuing any refund.",
+    instructions="Ask the customer which order they need help with.",
     tools=[pushary_tool("user_123")],
 )
-result = await Runner.run(agent, "Refund order 5?")
+result = await Runner.run(agent, "Which order needs help?")
 ```
 
 When the model calls the tool, Pushary delivers the question to that user's phone and

@@ -2,32 +2,43 @@
 
 Customer reviews use the native Pushary app first. Confirmations may use notification actions; choices and typed answers open the app. Keep the ask tool for information and the SDK's enforced approval interruptions for permission to execute. Web remains a compatibility option.
 
-Set `policy: false` when a person must always approve. Bind the recipient to your authenticated customer's identity. The resolver passes complete tool arguments to the shared gate and refuses interruptions without a stable tool-call ID. Exact retries share a review; changed customer or action arguments require a new one.
+[Integration guide](https://pushary.com/human-in-the-loop-openai-agents-sdk?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=guide) · [Connect your customer’s phone](https://pushary.com/sign-up?from=agent&plan=partner&utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=partner-start) · [Report a problem](https://github.com/Pushary/pushary-openai-agents/issues)
 
-The resolver is a bounded request-time helper. For delayed answers, persist the framework's run state with the decision ID, customer and exact call arguments, verify the authoritative answer, then resume only that call. Your application owns the atomic resume claim and recovery from uncertain execution. A typed answer is not authorization. Finish old pending operations with their original SDK version before upgrading the approval-key scheme to server SDK 2.1.
+## Try a review before signing up
 
+Use Node.js 22.13 or later:
+
+```bash
+git clone https://github.com/Pushary/pushary-openai-agents.git
+cd pushary-openai-agents
+npm install
+npm run build
+npm run test:restart
+```
+
+No account, API key or model provider is needed. The example uses the real OpenAI Agents SDK and fresh processes to check approvals, denials, expired answers and duplicate workers. Model responses, delivery and refunds are simulated.
+
+[Adapt the saved-state example to your customer](examples/DELAYED-REVIEWS.md). The adapter is MIT-licensed; real phone delivery uses the hosted Pushary service and requires developer Partner access.
 
 [![CI](https://github.com/Pushary/pushary-openai-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/Pushary/pushary-openai-agents/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@pushary/openai-agents)](https://www.npmjs.com/package/@pushary/openai-agents)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
 
-Full walkthrough: [Human-in-the-loop for the OpenAI Agents SDK](https://pushary.com/human-in-the-loop-openai-agents-sdk?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=readme). Reaching your own end-users on their phones is the Pushary [Partner plan](https://pushary.com/human-in-the-loop?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=readme).
+## Approval boundaries
 
-Human-in-the-loop for the [OpenAI Agents SDK](https://openai.github.io/openai-agents-js/)
-(TypeScript). A function tool that asks a real human to approve, delivered to their
-phone, and blocks on a fail-closed answer.
+Set `policy: false` when a person must always approve. Bind the recipient to your authenticated customer's identity. The resolver passes complete tool arguments to the shared gate and refuses interruptions without a stable tool-call ID. Exact retries share a review; changed customer or action arguments require a new one.
 
-Requires the Pushary [Partner plan](https://pushary.com/agent-notifications-integration?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=readme).
+The resolver is a bounded request-time helper. For delayed answers, persist the framework's run state with the decision ID, customer and exact call arguments, verify the authoritative answer, then resume only that call. Your application owns the atomic resume claim and recovery from uncertain execution. A typed answer is not authorization. Finish old pending operations with their original SDK version before upgrading the approval-key scheme to server SDK 2.1.
 
 ## Install
 
-Release candidate `0.4.0` requires server SDK 2.1 and Node.js 22 or later, matching the [OpenAI Agents supported runtimes](https://github.com/openai/openai-agents-js/tree/v0.13.0#supported-environments). The delayed SQLite recipe needs Node.js 22.13 or later. Validation used Node.js 24.3 and `@openai/agents@0.16.0`; the `>=0.13.0` peer range is not a claim that every version was tested.
+Version `0.4.0` requires server SDK 2.1 and Node.js 22 or later, matching the [OpenAI Agents supported runtimes](https://github.com/openai/openai-agents-js/tree/v0.13.0#supported-environments). The delayed SQLite recipe needs Node.js 22.13 or later. Validation used Node.js 24.3 and `@openai/agents@0.16.0`; the `>=0.13.0` peer range is not a claim that every version was tested.
 
 ```bash
 npm i @pushary/openai-agents @openai/agents zod
 ```
 
-Set `PUSHARY_API_KEY` (get it in your [dashboard](https://pushary.com/dashboard/settings)).
+Set `PUSHARY_API_KEY` (get it in your [dashboard](https://pushary.com/onboarding/partner)).
 
 ## Connect a phone once
 
@@ -44,11 +55,11 @@ import { pusharyTool } from '@pushary/openai-agents'
 
 const agent = new Agent({
   name: 'Support',
-  instructions: 'Call ask_human before issuing any refund.',
+  instructions: 'Ask the customer which order they need help with.',
   tools: [pusharyTool({ apiKey: process.env.PUSHARY_API_KEY! }, { externalId: user.id })],
 })
 
-const result = await run(agent, 'Refund order 5?')
+const result = await run(agent, 'Which order needs help?')
 ```
 
 When the model calls the tool, Pushary delivers the question to that user's phone and
