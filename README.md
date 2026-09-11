@@ -1,5 +1,12 @@
 # @pushary/openai-agents
 
+Customer reviews use the native Pushary app first. Confirmations may use notification actions; choices and typed answers open the app. Keep the ask tool for information and the SDK's enforced approval interruptions for permission to execute. Web remains a compatibility option.
+
+Set `policy: false` when a person must always approve. Bind the recipient to your authenticated customer's identity. The resolver passes complete tool arguments to the shared gate and refuses interruptions without a stable tool-call ID. Exact retries share a review; changed customer or action arguments require a new one.
+
+The resolver is a bounded request-time helper. For delayed answers, persist the framework's run state with the decision ID, customer and exact call arguments, verify the authoritative answer, then resume only that call. Your application owns the atomic resume claim and recovery from uncertain execution. A typed answer is not authorization. Finish old pending operations with their original SDK version before upgrading the approval-key scheme to server SDK 2.1.
+
+
 [![CI](https://github.com/Pushary/pushary-openai-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/Pushary/pushary-openai-agents/actions/workflows/ci.yml)
 [![npm](https://img.shields.io/npm/v/@pushary/openai-agents)](https://www.npmjs.com/package/@pushary/openai-agents)
 [![license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
@@ -13,6 +20,8 @@ phone, and blocks on a fail-closed answer.
 Requires the Pushary [Partner plan](https://pushary.com/agent-notifications-integration?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=readme).
 
 ## Install
+
+Release candidate `0.4.0` requires server SDK 2.1 and Node.js 22 or later, matching the [OpenAI Agents supported runtimes](https://github.com/openai/openai-agents-js/tree/v0.13.0#supported-environments). The delayed SQLite recipe needs Node.js 22.13 or later. Validation used Node.js 24.3 and `@openai/agents@0.16.0`; the `>=0.13.0` peer range is not a claim that every version was tested.
 
 ```bash
 npm i @pushary/openai-agents @openai/agents zod
@@ -101,29 +110,11 @@ to the same decisions instead of paging twice.
 
 ## Durable approvals
 
-For a wait longer than a request can hold, don't block. Two options:
+Use the [saved RunState and SQLite reference](examples/DELAYED-REVIEWS.md). It saves native state before delivery, reconciles the authoritative answer, verifies the exact customer/call/arguments, and atomically claims the continuation. Duplicate workers return the saved output; crashed or uncertain execution requires recovery rather than replay.
 
-1. **Native park/resume.** Mark real tools `needsApproval: true`, serialize the run
-   state (`result.state.toString()`), and open a Pushary decision per interruption
-   with a `callbackUrl`. On the signed callback, `resolvePusharyCallback` gives you the
-   answer; approve or reject on the restored state (`RunState.fromString(agent, saved)`)
-   and re-`run(agent, state)`. Pin your `@openai/agents` version, as the RunState API is
-   pre-1.0.
-2. **Webhook-only.** Skip the SDK's park and drive your own flow off
-   `createDurableDecision` + `resolvePusharyCallback`.
+Run `npm run test:restart` with Node.js 22.13 or later (tested on 24.3). The simulation starts fresh processes and checks delayed approval, denial, expiry, changed state, concurrent workers, subsequent interruptions and persistence failures. It contacts no live API. Examples also ship in the npm artifact.
 
-```ts
-import { resolvePusharyCallback } from '@pushary/openai-agents'
-
-// POST /api/pushary/callback
-export async function POST(req: Request) {
-  const raw = await req.text()
-  const cb = resolvePusharyCallback(raw, req.headers.get('x-pushary-signature'), process.env.PUSHARY_WEBHOOK_SECRET!)
-  if (!cb) return new Response('bad signature', { status: 401 })
-  // look up the parked run by cb.correlationId, then approve/reject and resume
-  return new Response('ok')
-}
-```
+Your existing job system performs reconciliation; an optional signed callback can wake it after durable receipt. The original agent graph and framework version must remain available to restore `RunState`. The reference covers one protected function-tool interruption per operation, not a general scheduler or deferred text-question runtime.
 
 ## Python
 
@@ -157,3 +148,7 @@ MIT
 ## Operation identity
 
 Independent blocking asks create separate decisions. For a retry of one operation, pass `idempotencyKey` to `askExternalUser`. `createDurableDecision` requires that key before it can send: derive it from your unique run ID, step and user, never question text alone.
+
+## Check the saved approval path
+
+Run `npm run build` then `node examples/saved-review.mjs`. The real OpenAI Agents runner pauses a protected tool, serializes its state, restores that state, and applies a simulated Pushary answer. Yes executes once; no and unanswered execute zero times. This uses no model API, phone, or payment provider and does not claim physical-device delivery or process-crash recovery.

@@ -100,6 +100,26 @@ class NeedsApprovalTests(unittest.TestCase):
 
 
 class ResolveInterruptionsTests(unittest.TestCase):
+    def test_requires_identity_before_requesting_review(self):
+        decisions = FakeDecisions([ANSWERED_YES])
+        with WithFakeClient(FakeClient(decisions)):
+            with self.assertRaisesRegex(ValueError, "stable tool call ID"):
+                poa.resolve_pushary_interruptions(
+                    FakeResult([FakeInterruption(FakeRawItem(call_id=None))]), external_id="user_1"
+                )
+        self.assertEqual(decisions.ask_calls, [])
+
+    def test_explicit_human_review_binds_the_complete_arguments(self):
+        decisions = FakeDecisions([ANSWERED_YES])
+        with WithFakeClient(FakeClient(decisions)):
+            for amount in (480, 960):
+                poa.resolve_pushary_interruptions(
+                    FakeResult([FakeInterruption(FakeRawItem(arguments='{"amount":%d}' % amount))]),
+                    external_id="user_1", run_id="run_1", policy=False,
+                )
+        self.assertEqual(decisions.ask_calls[0]["parameters"], {"amount": 480})
+        self.assertNotEqual(decisions.ask_calls[0]["idempotency_key"], decisions.ask_calls[1]["idempotency_key"])
+
     def test_approves_the_context_when_the_human_says_yes(self):
         decisions = FakeDecisions([ANSWERED_YES])
         result = FakeResult([FakeInterruption()])

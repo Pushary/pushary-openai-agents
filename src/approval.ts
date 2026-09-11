@@ -9,6 +9,7 @@
 
 import { createPusharyGate, requirePusharyExternalId } from './core'
 import { renderApprovalQuestion, type PusharyGateConfig } from '@pushary/server/adapters'
+import type { DecisionSubject } from '@pushary/server'
 
 /** The part of an OpenAI Agents interruption this module reads. */
 export interface AgentInterruption {
@@ -43,6 +44,7 @@ export interface PusharyInterruptionConfig extends PusharyGateConfig {
    * the same decisions instead of paging twice. Defaults to `''`.
    */
   readonly runId?: string
+  readonly subject?: InterruptionResolver<Omit<DecisionSubject, 'toolName' | 'approvalUrl'>>
 }
 
 /** What one interruption resolved to. */
@@ -123,13 +125,16 @@ export const resolvePusharyInterruptions = async <TItem extends AgentInterruptio
 
   for (const interruption of run.interruptions ?? []) {
     const toolName = toolNameOf(interruption)
-    const callId = interruption.rawItem.callId ?? toolName
+    const callId = interruption.rawItem.callId
+    if (!callId) throw new Error('Pushary: a stable tool call ID is required to resolve an approval.')
     const configured =
       typeof config.externalId === 'function'
         ? config.externalId(interruption)
         : config.externalId
 
     const decision = await gate({
+      ...config.subject?.(interruption),
+      input: argumentsOf(interruption),
       toolName,
       callId,
       sessionId: config.runId ?? '',

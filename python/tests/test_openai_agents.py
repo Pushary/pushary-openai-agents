@@ -8,6 +8,7 @@ import hmac
 import json
 import os
 import unittest
+from unittest.mock import patch
 
 import pushary_openai_agents as poa
 from pushary import adapters
@@ -83,8 +84,9 @@ class AskHumanTests(unittest.TestCase):
 
 class ToolFactoryTests(unittest.TestCase):
     def test_factory_lazily_imports_agents(self):
-        with self.assertRaises(ImportError):
-            poa.pushary_tool("user_1")
+        with patch.dict("sys.modules", {"agents": None}):
+            with self.assertRaises(ImportError):
+                poa.pushary_tool("user_1")
 
 
 class DescribeAnswerTests(unittest.TestCase):

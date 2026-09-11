@@ -1,6 +1,6 @@
 {
   "name": "@pushary/openai-agents",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Human-in-the-loop for the OpenAI Agents SDK: a function tool that asks a real human on their phone and blocks on a fail-closed answer.",
   "author": "Pushary <business@pushary.com>",
   "homepage": "https://pushary.com/human-in-the-loop-openai-agents-sdk",
@@ -25,23 +25,25 @@
   },
   "files": [
     "dist",
+    "examples",
     "README.md",
     "LICENSE"
   ],
   "sideEffects": false,
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "scripts": {
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:restart": "node examples/delayed-review.mjs",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build && npm run typecheck"
   },
   "dependencies": {
-    "@pushary/server": "^2.0.0"
+    "@pushary/server": "^2.1.0"
   },
   "peerDependencies": {
     "@openai/agents": ">=0.13.0",

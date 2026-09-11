@@ -34,7 +34,7 @@ from pushary.adapters import (
     resolve_pushary_callback,
 )
 
-__version__ = "0.3.0"
+__version__ = "0.4.0"
 
 __all__ = [
     "connect",
@@ -192,9 +192,12 @@ def _arguments_of(interruption: Any) -> Any:
         return arguments
 
 
-def _call_id_of(interruption: Any, fallback: str) -> str:
+def _call_id_of(interruption: Any) -> str:
     raw = getattr(interruption, "raw_item", None)
-    return str(getattr(raw, "call_id", None) or fallback)
+    call_id = getattr(raw, "call_id", None)
+    if not isinstance(call_id, str) or not call_id.strip():
+        raise ValueError("Pushary: a stable tool call ID is required to resolve an approval.")
+    return call_id
 
 
 def resolve_pushary_interruptions(
@@ -210,6 +213,7 @@ def resolve_pushary_interruptions(
     expires_in_seconds: Optional[int] = None,
     timeout_seconds: Optional[float] = None,
     require_reachable: Optional[bool] = None,
+    policy: bool = True,
 ) -> InterruptionOutcome:
     """Ask a real person about every tool call the run stopped on, then approve or
     reject each one on the run state.
@@ -248,18 +252,20 @@ def resolve_pushary_interruptions(
         expires_in_seconds=expires_in_seconds,
         timeout_seconds=timeout_seconds,
         require_reachable=require_reachable,
+        policy=policy,
     )
     run_state = state if state is not None else result.to_state()
     resolved: List[ResolvedInterruption] = []
 
     for interruption in getattr(result, "interruptions", None) or []:
         tool_name = _tool_name_of(interruption)
-        call_id = _call_id_of(interruption, tool_name)
+        call_id = _call_id_of(interruption)
         configured = external_id(interruption) if callable(external_id) else external_id
 
         decision = gate(
             ApprovalAsk(
                 tool_name=tool_name,
+                input=_arguments_of(interruption),
                 call_id=call_id,
                 session_id=run_id,
                 question=(

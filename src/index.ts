@@ -6,7 +6,7 @@ export * from './core'
 export * from './approval'
 
 const DEFAULT_DESCRIPTION =
-  'Ask a real human to approve, choose, or answer. Delivered to their phone and answered from the lock screen. Blocks until they reply. Use before any risky or irreversible action or when you need a human decision.'
+  'Ask a real human to approve, choose, or answer. Delivered to their native phone app. Confirmations can use notification actions; choices and text open the app. Blocks until they reply. Use before any risky or irreversible action or when you need a human decision.'
 
 export interface PusharyToolOptions {
   /**

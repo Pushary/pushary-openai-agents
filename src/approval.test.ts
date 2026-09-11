@@ -107,6 +107,28 @@ describe('pusharyNeedsApproval', () => {
 })
 
 describe('resolvePusharyInterruptions', () => {
+  it('keeps policy opt-out and exact arguments in the customer review', async () => {
+    const calls = installFetch([answered('yes')], ALLOWED)
+    const config = { ...CONFIG, policy: false }
+    await resolvePusharyInterruptions(config, { interruptions: [interruption()], state: recordingState() })
+    await resolvePusharyInterruptions(config, { interruptions: [interruption({ arguments: '{"amount":960}' })], state: recordingState() })
+    expect(calls).toHaveLength(2)
+    expect(calls[0].body?.parameters).toEqual({ amount: 480 })
+    expect(calls[1].body?.parameters).toEqual({ amount: 960 })
+    expect(calls[0].body?.idempotencyKey).not.toBe(calls[1].body?.idempotencyKey)
+  })
+
+  it('refuses an interruption without stable identity before changing the run state', async () => {
+    const calls = installFetch([answered('yes')])
+    const state = recordingState()
+    await expect(resolvePusharyInterruptions(CONFIG, {
+      interruptions: [interruption({ callId: undefined })], state,
+    })).rejects.toThrow(/stable tool call ID/)
+    expect(calls).toHaveLength(0)
+    expect(state.approved).toHaveLength(0)
+    expect(state.rejected).toHaveLength(0)
+  })
+
   it('approves the run state when the human says yes', async () => {
     installFetch([answered('yes')])
     const state = recordingState()

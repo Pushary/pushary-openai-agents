@@ -1,5 +1,14 @@
 # pushary-openai-agents
 
+Release candidate `0.4.0` requires `pushary>=2.1.0,<3` and `openai-agents>=0.18`. Clean-wheel checks used Python 3.12.12 with `openai-agents==0.18.0`; broader declared ranges do not imply every version was tested.
+
+Customer reviews use the native Pushary app first. Confirmations may use notification actions; choices and typed answers open the app. Keep the ask tool for information and the SDK's enforced approval interruptions for permission to execute. Web remains a compatibility option.
+
+Set `policy=False` when a person must always approve. Bind the recipient to your authenticated customer's identity. The resolver passes complete tool arguments to the shared gate and refuses interruptions without a stable tool-call ID. Exact retries share a review; changed customer or action arguments require a new one.
+
+The resolver is a bounded request-time helper. For delayed answers, persist the framework's run state with the decision ID, customer and exact call arguments, verify the authoritative answer, then resume only that call. Your application owns the atomic resume claim and recovery from uncertain execution. A typed answer is not authorization. Finish old pending operations with their original SDK version before upgrading the approval-key scheme to server SDK 2.1.
+
+
 Human-in-the-loop for the [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/)
 (Python). A function tool that asks a real human to approve, delivered to their phone,
 and blocks on a fail-closed answer.
@@ -91,6 +100,8 @@ Pass `run_id=` when you replay a run under ids you mint yourself, so the replay
 resolves to the same decisions instead of paging twice.
 
 ## Durable approvals
+
+The [TypeScript saved-state reference](../examples/DELAYED-REVIEWS.md) demonstrates SQLite claims, authoritative answer checks and restart recovery. Python callers still own equivalent coordination around their native saved state; the Python resolver remains request-time. This reference does not add a Python durable runtime.
 
 For a wait longer than a request can hold, drive your own flow off `ask_human` with a
 `callback_url` on `decisions.create` and resolve the signed callback:
