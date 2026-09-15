@@ -10,7 +10,7 @@ npm run build
 npm run test:restart
 ```
 
-Examples also ship in the npm artifact: `node node_modules/@pushary/openai-agents/examples/delayed-review.mjs` runs after installing the package and peers. Tested with `@openai/agents@0.16.0` and Node.js 24.3; SQLite is experimental in that Node runtime.
+Examples also ship in the npm artifact: `node node_modules/@pushary/openai-agents/examples/delayed-review.mjs` runs after installing the package and peers. Tested with `@openai/agents@0.16.1` and Node.js 24.3; SQLite is experimental in that Node runtime.
 
 The checks use the real framework, fresh processes, a scripted model, simulated HTTP, and SQLite execution receipts. They cover approval/denial/expiry, concurrent and duplicate workers, wrong-customer and changed-state refusal, altered decision context, a process exit after the simulated effect, a subsequent interruption, and output preservation when finalization and uncertainty writes fail. No model, phone, or payment API is contacted.
 
@@ -39,3 +39,9 @@ The Python package remains a request-time helper. Python applications still own 
 Official reference: [OpenAI Agents human-in-the-loop and long approval waits](https://openai.github.io/openai-agents-js/guides/human-in-the-loop/). Physical phone delivery remains a separate live test.
 
 `node:sqlite` is available without its experimental flag from [Node.js 22.13](https://nodejs.org/api/sqlite.html). The recipe does not change the runtime requirements of the installed framework.
+
+## Streaming uses the same saved state
+
+Run `npm run test:stream` to execute the same checks with streamed model responses and streamed continuations. The worker consumes events and awaits `result.completed` before inspecting interruptions or serializing state. Only the settled paused run is stored; resumption restores that same state. The simulation emits a completed model-response event, not a real token-by-token network stream.
+
+For direct Responses API MCP approvals, see [the phone approval tutorial](PHONE-APPROVALS.md). That path persists the response and approval request IDs, not an Agents SDK RunState.

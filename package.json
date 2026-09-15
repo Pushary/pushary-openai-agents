@@ -40,7 +40,9 @@
     "test": "vitest run",
     "test:restart": "node examples/delayed-review.mjs",
     "clean": "rm -rf dist",
-    "prepublishOnly": "npm run build && npm run typecheck"
+    "prepublishOnly": "npm run build && npm run typecheck",
+    "test:stream": "node examples/streamed-review.mjs",
+    "test:responses": "node --test examples/check-responses-review.mjs"
   },
   "dependencies": {
     "@pushary/server": "^2.1.0"
@@ -52,6 +54,7 @@
   "devDependencies": {
     "@openai/agents": "^0.16.0",
     "@types/node": "^20.0.0",
+    "openai": "^7.15.0",
     "tsup": "^8.0.0",
     "typescript": "^5.0.0",
     "vitest": "^2.1.0",

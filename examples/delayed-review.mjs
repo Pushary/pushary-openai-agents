@@ -29,16 +29,29 @@ const createAgent = (effect, scenario, resumed) => {
             : [{ type: 'message', role: 'assistant', status: 'completed', content: [{ type: 'output_text', text: 'Review continued.' }] }],
         }
       },
-      async *getStreamedResponse() { throw new Error('This reference uses non-streaming runs') },
+      async *getStreamedResponse() {
+        const response = await this.getResponse()
+        yield { type: 'response_done', response: { ...response, id: 'response_simulation' } }
+      },
     },
   })
 }
 const runner = new Runner({ tracingDisabled: true })
+const streaming = process.env.PUSHARY_EXAMPLE_STREAM === '1'
+const run = async (agent, input) => {
+  const result = await runner.run(agent, input, { stream: streaming })
+  if (streaming) {
+    // Consume events, then await settlement before reading or saving interruptions.
+    for await (const event of result) assert.ok(event.type)
+    await result.completed
+  }
+  return result
+}
 
 await runSimulation(import.meta.url, {
-  framework: 'openai-agents@0.16.0',
+  framework: 'openai-agents@0.16.1',
   async start({ store, target, effect, scenario }) {
-    const result = await runner.run(createAgent(effect, scenario, false), 'Refund order_1 only after customer approval.')
+    const result = await run(createAgent(effect, scenario, false), 'Refund order_1 only after customer approval.')
     assert.equal(result.interruptions.length, 1, 'This bounded recipe opens one protected call per saved operation')
     saveReview(store, target, result.state.toString(), callOf(result.interruptions[0]))
   },
@@ -51,7 +64,7 @@ await runSimulation(import.meta.url, {
     assert.equal(decisionFingerprint(callOf(interruption)), decisionFingerprint(binding.call))
     if (approved) state.approve(interruption)
     else state.reject(interruption, { message: 'The customer declined or the review is no longer answerable.' })
-    const result = await runner.run(agent, state)
+    const result = await run(agent, state)
     return {
       text: result.finalOutput ?? '', snapshot: result.state.toString(),
       history: result.history,

@@ -6,7 +6,7 @@ Customer reviews use the native Pushary app first. Confirmations may use notific
 
 ## Try a review before signing up
 
-Use Node.js 22.13 or later:
+Use Node.js 22.18+ within 22.x, or Node.js 24:
 
 ```bash
 git clone https://github.com/Pushary/pushary-openai-agents.git
@@ -14,9 +14,13 @@ cd pushary-openai-agents
 npm install
 npm run build
 npm run test:restart
+npm run test:stream
+npm run test:responses
 ```
 
 No account, API key or model provider is needed. The example uses the real OpenAI Agents SDK and fresh processes to check approvals, denials, expired answers and duplicate workers. Model responses, delivery and refunds are simulated.
+
+[Tutorial: phone approval for streaming agents and Responses MCP](examples/PHONE-APPROVALS.md).
 
 [Adapt the saved-state example to your customer](examples/DELAYED-REVIEWS.md). The adapter is MIT-licensed; real phone delivery uses the hosted Pushary service and requires developer Partner access.
 
@@ -32,7 +36,7 @@ The resolver is a bounded request-time helper. For delayed answers, persist the 
 
 ## Install
 
-Version `0.4.0` requires server SDK 2.1 and Node.js 22 or later, matching the [OpenAI Agents supported runtimes](https://github.com/openai/openai-agents-js/tree/v0.13.0#supported-environments). The delayed SQLite recipe needs Node.js 22.13 or later. Validation used Node.js 24.3 and `@openai/agents@0.16.0`; the `>=0.13.0` peer range is not a claim that every version was tested.
+Version `0.4.0` requires server SDK 2.1 and Node.js 22 or later, matching the [OpenAI Agents supported runtimes](https://github.com/openai/openai-agents-js/tree/v0.13.0#supported-environments). The delayed SQLite recipe needs Node.js 22.13 or later. Validation used Node.js 24.3 and `@openai/agents@0.16.1`; the `>=0.13.0` peer range is not a claim that every version was tested.
 
 ```bash
 npm i @pushary/openai-agents @openai/agents zod
