@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.2
+
+The README and the package description now lead with what the package does: your agent asks, your user taps Approve or Deny on their phone. No code changes.
+
 ## 0.4.1
 
 Ship the streaming Agents SDK and Responses API MCP review examples in the npm artifact, with the [phone approval tutorial](https://github.com/Pushary/pushary-openai-agents/blob/main/examples/PHONE-APPROVALS.md). The checks use real SDKs with simulated services; no adapter API changes.
