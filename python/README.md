@@ -1,41 +1,27 @@
 # pushary-openai-agents
 
-Version `0.4.0` requires `pushary>=2.1.0,<3` and `openai-agents>=0.18`. Clean-wheel checks used Python 3.12.12 with `openai-agents==0.18.0`; broader declared ranges do not imply every version was tested.
+Phone approvals for OpenAI Agents SDK agents. Your agent asks, your user taps Approve or Deny.
 
-Customer reviews use the native Pushary app first. Confirmations may use notification actions; choices and typed answers open the app. Keep the ask tool for information and the SDK's enforced approval interruptions for permission to execute. Web remains a compatibility option.
+This is the Python package for the [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/).
 
-Set `policy=False` when a person must always approve. Bind the recipient to your authenticated customer's identity. The resolver passes complete tool arguments to the shared gate and refuses interruptions without a stable tool-call ID. Exact retries share a review; changed customer or action arguments require a new one.
+## What you need
 
-The resolver is a bounded request-time helper. For delayed answers, persist the framework's run state with the decision ID, customer and exact call arguments, verify the authoritative answer, then resume only that call. Your application owns the atomic resume claim and recovery from uncertain execution. A typed answer is not authorization. Finish old pending operations with their original SDK version before upgrading the approval-key scheme to server SDK 2.1.
+- A Pushary Partner plan, from $99 a month. [Start the trial](https://pushary.com/sign-up?from=agent&plan=partner&utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=python-partner-start).
+- An API key from [Partner onboarding](https://pushary.com/onboarding/partner), set as `PUSHARY_API_KEY`.
+- Your users install the free Pushary app ([iPhone](https://apps.apple.com/us/app/pushary/id6785677563), [Android](https://play.google.com/store/apps/details?id=com.pushary.app)). They never sign up or pay.
 
-
-Human-in-the-loop for the [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/)
-(Python). A function tool that asks a real human to approve, delivered to their phone,
-and blocks on a fail-closed answer.
-
-Requires the Pushary [Partner plan](https://pushary.com/sign-up?from=agent&plan=partner&utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=python-partner-start).
-
-## Install
+## Quick start
 
 ```bash
 pip install pushary-openai-agents
+export PUSHARY_API_KEY=pk_xxx.sk_xxx
 ```
-
-Set `PUSHARY_API_KEY` (get it in your [dashboard](https://pushary.com/onboarding/partner)).
-
-## Connect a phone once
-
-```python
-from pushary_openai_agents import connect
-
-link = connect("user_123")  # show this to your end-user; one tap connects their phone
-```
-
-## The tool
 
 ```python
 from agents import Agent, Runner
-from pushary_openai_agents import pushary_tool
+from pushary_openai_agents import connect, pushary_tool
+
+link = connect("user_123")  # once per user: show this link, one tap connects their phone
 
 agent = Agent(
     name="Support",
@@ -46,9 +32,13 @@ result = await Runner.run(agent, "Which order needs help?")
 ```
 
 When the model calls the tool, Pushary delivers the question to that user's phone and
-the call blocks until they answer. The tool returns a fail-closed instruction. The
-`external_id` is bound when you build the tool, never taken from the model, so a
+the call waits until they answer. A no, or no answer, tells the model not to proceed.
+The `external_id` is bound when you build the tool, never taken from the model, so a
 prompt-injected agent cannot ask the wrong person.
+
+Keep the ask tool for information and the SDK's enforced approval interruptions (below) for permission to execute. Confirmations can be answered from the lock screen. Choices and typed answers open the app. Web remains a compatibility option.
+
+The OpenAI Agents SDK's own approval docs: [Human in the loop](https://openai.github.io/openai-agents-python/human_in_the_loop/).
 
 ## Gating a tool the model cannot skip
 
@@ -99,6 +89,16 @@ resolve_pushary_interruptions(
 Pass `run_id=` when you replay a run under ids you mint yourself, so the replay
 resolves to the same decisions instead of paging twice.
 
+## Approval boundaries
+
+Set `policy=False` when a person must always approve. Bind the recipient to your authenticated customer's identity. The resolver passes complete tool arguments to the shared gate and refuses interruptions without a stable tool-call ID. Exact retries share a review; changed customer or action arguments require a new one.
+
+The resolver is a bounded request-time helper. For delayed answers, persist the framework's run state with the decision ID, customer and exact call arguments, verify the authoritative answer, then resume only that call. Your application owns the atomic resume claim and recovery from uncertain execution. A typed answer is not authorization. Finish old pending operations with their original SDK version before upgrading the approval-key scheme to server SDK 2.1.
+
+## Runtime requirements
+
+Version `0.4.0` requires `pushary>=2.1.0,<3` and `openai-agents>=0.18`. Clean-wheel checks used Python 3.12.12 with `openai-agents==0.18.0`; broader declared ranges do not imply every version was tested.
+
 ## Durable approvals
 
 The [TypeScript saved-state reference](../examples/DELAYED-REVIEWS.md) demonstrates SQLite claims, authoritative answer checks and restart recovery. Python callers still own equivalent coordination around their native saved state; the Python resolver remains request-time. This reference does not add a Python durable runtime.
@@ -121,13 +121,13 @@ For TypeScript, use `npm i @pushary/openai-agents`.
 
 ## API
 
-- `connect(external_id, *, api_key=None, base_url=None)` — enroll an end-user's phone.
-- `pushary_tool(external_id, *, name="ask_human", ...)` — an OpenAI Agents function tool bound to that user.
-- `ask_human(question, *, external_id, type="confirm", ...)` — blocking, returns the decision dict.
-- `pushary_needs_approval()` — a `needs_approval` predicate that routes every call to a human.
-- `resolve_pushary_interruptions(result, *, external_id, run_id="", ...)` — ask about each interruption, then approve or reject it on the run's context.
-- `resolve_pushary_callback(raw_body, signature, secret)` — verify + parse a callback for the durable path.
-- `create_pushary_gate(...)` — the raw fail-closed gate, for anything the helpers above do not cover.
+- `connect(external_id, *, api_key=None, base_url=None)`: enroll an end-user's phone.
+- `pushary_tool(external_id, *, name="ask_human", ...)`: an OpenAI Agents function tool bound to that user.
+- `ask_human(question, *, external_id, type="confirm", ...)`: blocking, returns the decision dict.
+- `pushary_needs_approval()`: a `needs_approval` predicate that routes every call to a human.
+- `resolve_pushary_interruptions(result, *, external_id, run_id="", ...)`: ask about each interruption, then approve or reject it on the run's context.
+- `resolve_pushary_callback(raw_body, signature, secret)`: verify + parse a callback for the durable path.
+- `create_pushary_gate(...)`: the raw fail-closed gate, for anything the helpers above do not cover.
 - `describe_answer(type, result)`, `is_affirmative(answer)`, `render_approval_question(tool, input)`, `deterministic_key(parts)`, `SIGNATURE_HEADER`.
 
 ## License
