@@ -57,9 +57,12 @@ npm run build
 npm run test:restart
 npm run test:stream
 npm run test:responses
+npm run test:hosted
 ```
 
 No account, API key or model provider is needed. The example uses the real OpenAI Agents SDK and fresh processes to check approvals, denials, expired answers and duplicate workers. Model responses, delivery and refunds are simulated.
+
+[Hosted Agents API approval recipe](https://pushary.com/docs/agents/build/hosted-openai-agents): saves one pending function call and rechecks its identity before submitting the exact tool result. The hosted API is separate from the Agents SDK.
 
 [Tutorial: phone approval for streaming agents and Responses MCP](examples/PHONE-APPROVALS.md).
 

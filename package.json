@@ -37,12 +37,13 @@
     "build": "tsup",
     "dev": "tsup --watch",
     "typecheck": "tsc --noEmit",
-    "test": "vitest run",
+    "test": "vitest run && npm run test:hosted",
     "test:restart": "node examples/delayed-review.mjs",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run build && npm run typecheck",
     "test:stream": "node examples/streamed-review.mjs",
-    "test:responses": "node --test examples/check-responses-review.mjs"
+    "test:responses": "node --test examples/check-responses-review.mjs",
+    "test:hosted": "node --test examples/check-hosted-agent-review.mjs"
   },
   "dependencies": {
     "@pushary/server": "^2.1.0"
