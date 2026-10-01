@@ -52,6 +52,10 @@ export const createReviewStore = database => {
     claim(operationId) {
       return database.prepare("UPDATE reviews SET state = 'resuming' WHERE operation_id = ? AND state = 'pending'").run(operationId).changes === 1
     },
+    recoverInterrupted(operationId) {
+      id.parse(operationId)
+      return database.prepare("UPDATE reviews SET state = 'uncertain', error = 'Worker stopped during continuation; manual reconciliation required' WHERE operation_id = ? AND state = 'resuming'").run(operationId).changes === 1
+    },
     complete(operationId, output) {
       const serialized = JSON.stringify(output)
       if (serialized === undefined) throw new Error('Missing continuation output')
@@ -113,7 +117,7 @@ export const reconcileReview = async (config, store, target, resume) => {
   const decisionId = await openReview(config, store, target.operationId)
   const request = reviewRequest(row.binding)
   const decision = decisionSchema.parse(await kernel.client(config).decisions.get(decisionId))
-  if (decision.decisionId !== decisionId || (decision.externalId !== null && decision.externalId !== target.externalId) || decision.question !== request.question || decision.context !== request.context || (decision.options?.length ?? 0) !== 0) throw new Error('Decision does not match the saved review')
+  if (decision.decisionId !== decisionId || decision.externalId !== target.externalId || decision.question !== request.question || decision.context !== request.context || (decision.options?.length ?? 0) !== 0) throw new Error('Decision does not match the saved review')
   if (decision.status === 'pending') return { status: 'pending' }
   if (decision.status === 'answered' && decision.value !== 'yes' && decision.value !== 'no') throw new Error('Invalid confirmation answer')
   if (!store.claim(target.operationId)) {

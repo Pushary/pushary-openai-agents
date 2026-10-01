@@ -64,7 +64,7 @@ export const runSimulation = async (file, adapter) => {
       assert.deepEqual(body.presentation.changes[0], { parameter: 'amount', label: 'Refund amount', format: { kind: 'currency', currency: 'EUR' } })
       assert.equal(body.context, decisionFingerprint(store.get(target.operationId).binding))
       const decisionId = `decision_${body.idempotencyKey}`
-      const payload = JSON.stringify({ ...body, decisionId, status: 'pending', answered: false, value: null, externalId: null, options: null })
+      const payload = JSON.stringify({ ...body, decisionId, status: 'pending', answered: false, value: null, externalId: target.externalId, options: null })
       database.prepare('INSERT OR IGNORE INTO decisions VALUES (?, ?, ?)').run(decisionId, body.idempotencyKey, payload)
       return new Response(database.prepare('SELECT payload FROM decisions WHERE id = ?').get(decisionId).payload)
     }

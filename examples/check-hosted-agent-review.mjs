@@ -15,11 +15,14 @@ test('hosted approval survives reopening, binds the pending call, and fails clos
   const originalFetch = globalThis.fetch
   const directory = mkdtempSync(join(tmpdir(), 'pushary-hosted-'))
   try {
-    for (const scenario of ['yes', 'no', 'expired', 'cancelled', 'changed', 'network', 'wrong-customer']) {
+    for (const scenario of ['null-customer', 'claimed-crash', 'yes', 'no', 'expired', 'cancelled', 'changed', 'network', 'wrong-customer']) {
       const path = join(directory, scenario + '.sqlite')
       let database = new DatabaseSync(path)
       let store = createReviewStore(database)
       const config = { apiKey: 'pk_simulation.sk_simulation', baseUrl: 'https://pushary.example.invalid' }
+      let decisionExternalId = target.externalId
+      if (scenario === 'null-customer') decisionExternalId = null
+      if (scenario === 'wrong-customer') decisionExternalId = 'other'
       let payload, creates = 0, effects = 0, submissions = 0, status = 'pending'
       globalThis.fetch = async (url, init) => {
         assert.equal(new URL(String(url)).origin, config.baseUrl)
@@ -27,7 +30,7 @@ test('hosted approval survives reopening, binds the pending call, and fails clos
           creates++; payload = JSON.parse(init.body)
           return Response.json({ decisionId: 'decision-1', status: 'pending', answered: false })
         }
-        return Response.json({ decisionId: 'decision-1', externalId: scenario === 'wrong-customer' ? 'other' : target.externalId,
+        return Response.json({ decisionId: 'decision-1', externalId: decisionExternalId,
           type: 'confirm', question: payload.question, options: null, context: payload.context, status,
           value: status === 'answered' ? (scenario === 'no' ? 'no' : 'yes') : null })
       }
@@ -43,7 +46,7 @@ test('hosted approval survives reopening, binds the pending call, and fails clos
         const result = JSON.parse(init.body).events[0]
         assert.equal(result.type, 'agent.session.input.tool_result')
         assert.equal(result.call_id, 'call-1'); assert.equal(result.turn_id, 'turn-1')
-        assert.equal(result.success, ['yes', 'network'].includes(scenario))
+        assert.equal(result.success, ['yes', 'network', 'null-customer'].includes(scenario))
         if (scenario === 'network') throw new Error('Connection lost after possible acceptance')
         return new Response(null, { status: 204 })
       } })
@@ -59,16 +62,36 @@ test('hosted approval survives reopening, binds the pending call, and fails clos
         await openReview(config, store, target.operationId)
         database.close(); database = new DatabaseSync(path); store = createReviewStore(database)
         const resume = () => resumeHostedReview(config, store, target, openai, execute)
-        if (scenario === 'wrong-customer') { await assert.rejects(resume); continue }
+        if (['wrong-customer', 'null-customer'].includes(scenario)) {
+          status = 'answered'
+          await assert.rejects(resume, /saved review/)
+          assert.equal(effects, 0); assert.equal(submissions, 0)
+          continue
+        }
         assert.equal((await resume()).status, 'pending'); assert.equal(effects, 0)
         status = ['expired', 'cancelled'].includes(scenario) ? scenario : 'answered'
+        if (scenario === 'claimed-crash') {
+          assert.equal(store.recoverInterrupted(target.operationId), false)
+          assert.equal(store.claim(target.operationId), true)
+          await execute(session.required_actions[0].arguments, target.operationId)
+          database.close(); database = new DatabaseSync(path); store = createReviewStore(database)
+          assert.equal((await resume()).status, 'busy')
+          assert.equal(store.recoverInterrupted(target.operationId), true)
+          assert.equal(store.recoverInterrupted(target.operationId), false)
+          assert.equal(database.prepare('SELECT error FROM reviews WHERE operation_id = ?').get(target.operationId).error, 'Worker stopped during continuation; manual reconciliation required')
+          assert.equal((await resume()).status, 'uncertain')
+          assert.equal(effects, 1); assert.equal(submissions, 0)
+          assert.equal(store.recoverInterrupted('missing'), false)
+          continue
+        }
         const results = await Promise.all([resume(), resume()])
         const uncertain = ['changed', 'network'].includes(scenario)
-        assert.ok(results.some(result => result.status === (uncertain ? 'uncertain' : 'resumed')))
+        assert.ok(results.some(result => result.status === (uncertain ? 'uncertain' : 'resumed')), JSON.stringify({ scenario, results }))
         assert.equal((await resume()).status, uncertain ? 'uncertain' : 'duplicate')
         assert.equal(creates, 1)
-        assert.equal(effects, ['yes', 'network'].includes(scenario) ? 1 : 0)
+        assert.equal(effects, ['yes', 'network', 'null-customer'].includes(scenario) ? 1 : 0)
         assert.equal(submissions, scenario === 'changed' ? 0 : 1)
+        assert.equal(store.recoverInterrupted(target.operationId), false)
       } finally { database.close() }
     }
   } finally { globalThis.fetch = originalFetch; rmSync(directory, { recursive: true, force: true }) }
