@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.3
+
+Ship the checked hosted Agents API review example and its test in the npm artifact. Saved, streaming and Responses review examples include the current restart, recovery, identity binding and replay checks. The checks use local service simulations; no live phone delivery or money movement is claimed.
+
 ## 0.4.2
 
 The README and the package description now lead with what the package does: your agent asks, your user taps Approve or Deny on their phone. No code changes.
