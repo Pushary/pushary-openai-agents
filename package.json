@@ -1,6 +1,6 @@
 {
   "name": "@pushary/openai-agents",
-  "version": "0.4.2",
+  "version": "0.4.3",
   "description": "Phone approvals for OpenAI Agents SDK agents. Your agent asks, your user taps Approve or Deny.",
   "author": "Pushary <business@pushary.com>",
   "homepage": "https://pushary.com/human-in-the-loop-openai-agents-sdk",
