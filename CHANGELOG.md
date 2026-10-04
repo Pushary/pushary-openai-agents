@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.4
+
+A denied tool call now reaches the model. The approval loop in the README example broke out before resuming the run, so a rejection was recorded on the run state but the model never saw the reason, and any call approved in the same batch never ran. The example now resumes once and then stops if anything was denied. No behavior changes.
+
 ## 0.4.3
 
 Ship the checked hosted Agents API review example and its test in the npm artifact. Saved, streaming and Responses review examples include the current restart, recovery, identity binding and replay checks. The checks use local service simulations; no live phone delivery or money movement is claimed.

@@ -64,9 +64,9 @@ agent = Agent(name="Support", instructions="Refund when asked.", tools=[issue_re
 result = await Runner.run(agent, "Refund order 1234")
 while result.interruptions:
     outcome = resolve_pushary_interruptions(result, external_id="user_123")
+    result = await Runner.run(agent, outcome.state)
     if not outcome.all_approved:
         break
-    result = await Runner.run(agent, outcome.state)
 ```
 
 Resume with `outcome.state`, not `result.to_input_list()`. The second replays the

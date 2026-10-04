@@ -104,8 +104,8 @@ while (result.interruptions?.length) {
     { externalId: user.id },
     { interruptions: result.interruptions, state: result.state },
   )
-  if (!outcome.allApproved) break
   result = await run(refundAgent, result.state)
+  if (!outcome.allApproved) break
 }
 ```
 

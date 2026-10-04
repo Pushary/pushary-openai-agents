@@ -34,7 +34,7 @@ from pushary.adapters import (
     resolve_pushary_callback,
 )
 
-__version__ = "0.4.1"
+__version__ = "0.4.2"
 
 __all__ = [
     "connect",
@@ -225,9 +225,9 @@ def resolve_pushary_interruptions(
     result = await Runner.run(agent, "Refund order 1234")
     while result.interruptions:
         outcome = resolve_pushary_interruptions(result, external_id=user.id)
+        result = await Runner.run(agent, outcome.state)
         if not outcome.all_approved:
             break
-        result = await Runner.run(agent, outcome.state)
     ```
 
     Resume with ``outcome.state``, never with ``result.to_input_list()``: the second
