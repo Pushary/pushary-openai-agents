@@ -4,11 +4,21 @@ Phone approvals for OpenAI Agents SDK agents. Your agent asks, your user taps Ap
 
 This is the Python package for the [OpenAI Agents SDK](https://openai.github.io/openai-agents-python/).
 
+[Human in the loop for the OpenAI Agents SDK](https://pushary.com/human-in-the-loop-openai-agents-sdk?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=python-readme) · [Connect your customer’s phone](https://pushary.com/sign-up?from=agent&plan=partner&utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=python-partner-start) · [Report a problem](https://github.com/Pushary/pushary-openai-agents/issues)
+
 ## What you need
 
 - A Pushary Partner plan, from $99 a month. [Start the trial](https://pushary.com/sign-up?from=agent&plan=partner&utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=python-partner-start).
 - An API key from [Partner onboarding](https://pushary.com/onboarding/partner?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=python-partner-start), set as `PUSHARY_API_KEY`.
 - Your users install the free Pushary app ([iPhone](https://apps.apple.com/us/app/pushary/id6785677563), [Android](https://play.google.com/store/apps/details?id=com.pushary.app)). They never sign up or pay.
+
+## What your customer gets
+
+1. They open your connect link once. It shows your product's name and logo and connects their phone.
+2. When a tool with `needs_approval` stops the run, or the model calls the ask tool, a push notification titled with your product name arrives, such as **Acme needs your approval**.
+3. They approve or decline, pick an option or type an answer. A decline, an expired question or no answer at all rejects the call, and the model is told why.
+
+Pushary hosts the phone delivery, the decision record and the [audit log](https://pushary.com/docs/agents/audit-log?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=python-readme). Your app keeps its own sign-in, the run state and the tool's execution.
 
 ## Quick start
 
@@ -36,7 +46,7 @@ the call waits until they answer. A no, or no answer, tells the model not to pro
 The `external_id` is bound when you build the tool, never taken from the model, so a
 prompt-injected agent cannot ask the wrong person.
 
-Keep the ask tool for information and the SDK's enforced approval interruptions (below) for permission to execute. Confirmations can be answered from the lock screen. Choices and typed answers open the app. Web remains a compatibility option.
+Keep the ask tool for information and the SDK's enforced approval interruptions (below) for permission to execute. On iPhone, confirmations can be answered from the lock screen. Choices and typed answers open the app. Web remains a compatibility option.
 
 The OpenAI Agents SDK's own approval docs: [Human in the loop](https://openai.github.io/openai-agents-python/human_in_the_loop/).
 
@@ -129,6 +139,14 @@ For TypeScript, use `npm i @pushary/openai-agents`.
 - `resolve_pushary_callback(raw_body, signature, secret)`: verify + parse a callback for the durable path.
 - `create_pushary_gate(...)`: the raw fail-closed gate, for anything the helpers above do not cover.
 - `describe_answer(type, result)`, `is_affirmative(answer)`, `render_approval_question(tool, input)`, `deterministic_key(parts)`, `SIGNATURE_HEADER`.
+
+## Links
+
+- [Human in the loop for the OpenAI Agents SDK](https://pushary.com/human-in-the-loop-openai-agents-sdk?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=python-readme): what your customer sees, with the full example.
+- [OpenAI Agents SDK guide](https://pushary.com/docs/agents/build/openai-agents?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=python-readme) in the Pushary docs, with Python and TypeScript.
+- [Partner plan](https://pushary.com/partners?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=python-readme), from $99 a month. All plans are on the [pricing page](https://pushary.com/pricing?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=python-readme).
+- [Browser demo](https://pushary.com/try?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=python-readme) of one approval.
+- Other Python adapters: [LangGraph](https://github.com/Pushary/pushary-langgraph), [Pydantic AI](https://github.com/Pushary/pushary-pydantic-ai), [CrewAI](https://github.com/Pushary/pushary-crewai).
 
 ## License
 

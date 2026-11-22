@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.5
+
+README: what you get after you sign in, plans, and links to the integration's pages. No code changes.
+
 ## 0.4.4
 
 A denied tool call now reaches the model. The approval loop in the README example broke out before resuming the run, so a rejection was recorded on the run state but the model never saw the reason, and any call approved in the same batch never ran. The example now resumes once and then stops if anything was denied. No behavior changes.

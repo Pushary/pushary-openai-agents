@@ -14,6 +14,14 @@ Phone approvals for OpenAI Agents SDK agents. Your agent asks, your user taps Ap
 - An API key from [Partner onboarding](https://pushary.com/onboarding/partner?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=partner-start), set as `PUSHARY_API_KEY`.
 - Your users install the free Pushary app ([iPhone](https://apps.apple.com/us/app/pushary/id6785677563), [Android](https://play.google.com/store/apps/details?id=com.pushary.app)). They never sign up or pay.
 
+## What your customer gets
+
+1. They open your connect link once. It shows your product's name and logo and connects their phone.
+2. When a tool with `needsApproval` stops the run, or the model calls the ask tool, a push notification titled with your product name arrives, such as **Acme needs your approval**.
+3. They approve or decline, pick an option or type an answer. A decline, an expired question or no answer at all rejects the call, and the model is told why.
+
+Pushary hosts the phone delivery, the decision record and the [audit log](https://pushary.com/docs/agents/audit-log?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=readme). Your app keeps its own sign-in, the saved `RunState` and the tool's execution.
+
 ## Quick start
 
 ```bash
@@ -41,7 +49,7 @@ the call waits until they answer. A no, or no answer, tells the model not to pro
 ("The human declined. Do not proceed."). `externalId` is bound in code, never taken
 from model input, so a prompt-injected model cannot ask the wrong person.
 
-Keep the ask tool for information and the SDK's enforced approval interruptions (below) for permission to execute. Confirmations can be answered from the lock screen. Choices and typed answers open the app. Web remains a compatibility option.
+Keep the ask tool for information and the SDK's enforced approval interruptions (below) for permission to execute. On iPhone, confirmations can be answered from the lock screen. Choices and typed answers open the app. Web remains a compatibility option.
 
 The OpenAI Agents SDK's own approval docs: [Human in the loop](https://openai.github.io/openai-agents-js/guides/human-in-the-loop/).
 
@@ -62,7 +70,7 @@ npm run test:hosted
 
 No account, API key or model provider is needed. The example uses the real OpenAI Agents SDK and fresh processes to check approvals, denials, expired answers and duplicate workers. Model responses, delivery and refunds are simulated.
 
-[Hosted Agents API approval recipe](https://pushary.com/docs/agents/build/hosted-openai-agents): saves one pending function call and rechecks its identity before submitting the exact tool result. The hosted API is separate from the Agents SDK.
+[Hosted Agents API approval recipe](https://pushary.com/docs/agents/build/hosted-openai-agents?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=readme): saves one pending function call and rechecks its identity before submitting the exact tool result. The hosted API is separate from the Agents SDK.
 
 [Tutorial: phone approval for streaming agents and Responses MCP](examples/PHONE-APPROVALS.md).
 
@@ -168,6 +176,14 @@ See [python/README.md](python/README.md) for the Python API.
 ## Example
 
 A runnable example is in [`examples/`](examples).
+
+## Links
+
+- [Human in the loop for the OpenAI Agents SDK](https://pushary.com/human-in-the-loop-openai-agents-sdk?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=readme): what your customer sees, with the full example.
+- [OpenAI Agents SDK guide](https://pushary.com/docs/agents/build/openai-agents?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=readme) in the Pushary docs.
+- [Partner plan](https://pushary.com/partners?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=readme), from $99 a month. All plans are on the [pricing page](https://pushary.com/pricing?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=readme).
+- [Browser demo](https://pushary.com/try?utm_source=github&utm_medium=oss-adapter&utm_campaign=pushary-openai-agents&utm_content=readme) of one approval.
+- Other adapters: [Vercel AI SDK](https://github.com/Pushary/pushary-ai-sdk), [LangGraph](https://github.com/Pushary/pushary-langgraph), [Claude Agent SDK](https://github.com/Pushary/pushary-claude-agent-sdk).
 
 ## License
 

@@ -34,7 +34,7 @@ from pushary.adapters import (
     resolve_pushary_callback,
 )
 
-__version__ = "0.4.2"
+__version__ = "0.4.3"
 
 __all__ = [
     "connect",
